@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Your Job Recommendations — Jobify AI</title>
+    <meta name="description" content="View your personalized job recommendations with match scores and skill gap analysis.">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎯</text></svg>">
+
+    <!-- SVG Gradient Definitions (for score circles) -->
+    <svg width="0" height="0" style="position: absolute;">
+        <defs>
+            <linearGradient id="gradientHigh" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" style="stop-color:#00b894" />
+                <stop offset="100%" style="stop-color:#00cec9" />
+            </linearGradient>
+            <linearGradient id="gradientMid" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" style="stop-color:#fdcb6e" />
+                <stop offset="100%" style="stop-color:#e17055" />
+            </linearGradient>
+            <linearGradient id="gradientLow" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" style="stop-color:#e17055" />
+                <stop offset="100%" style="stop-color:#d63031" />
+            </linearGradient>
+        </defs>
+    </svg>
+</head>
+<body>
+
+    <!-- Background Decoration -->
+    <div class="bg-decoration">
+        <div class="bg-orb bg-orb-1"></div>
+        <div class="bg-orb bg-orb-2"></div>
+        <div class="bg-orb bg-orb-3"></div>
+    </div>
+    <div class="bg-grid"></div>
+
+    <!-- Navigation Bar -->
+    <nav class="nav-bar" id="navbar">
+        <div class="nav-content">
+            <a href="/" class="nav-logo">
+                <div class="nav-logo-icon">🎯</div>
+                <div class="nav-logo-text"><span>JobMatch</span> AI</div>
+            </a>
+            <div class="nav-stats">
+                <div class="nav-stat">
+                    <span class="nav-stat-value">{{ recommendations | length }}</span>
+                    <span>Matches Found</span>
+                </div>
+                <div class="nav-stat">
+                    <span class="nav-stat-value">{{ total_jobs }}</span>
+                    <span>Jobs Analyzed</span>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="main-container">
+
+        <!-- Results Header -->
+        <section class="results-header">
+            <h1>
+                🎯 Your <span class="gradient-text">Top Matches</span>
+            </h1>
+            <p class="results-summary">
+                We analyzed your profile against <strong>{{ total_jobs }} job listings</strong> 
+                and found <strong>{{ recommendations | length }} matches</strong> for you.
+            </p>
+        </section>
+
+        <!-- User Skills Display -->
+        {% if user_skills %}
+        <section class="user-skills-section">
+            <div class="user-skills-card">
+                <h3>🛠️ Your Detected Skills ({{ user_skills | length }})</h3>
+                <div class="skills-tags">
+                    {% for skill in user_skills %}
+                    <span class="skill-tag">{{ skill }}</span>
+                    {% endfor %}
+                </div>
+            </div>
+        </section>
+        {% endif %}
+
+        <!-- Controls Bar -->
+        <div class="controls-bar">
+            <a href="/" class="back-btn">
+                ← Try Again
+            </a>
+            <div class="sort-controls">
+                <span style="color: var(--text-muted); font-size: 0.82rem;">Sort by:</span>
+                <button class="sort-btn active" data-sort="score">Match %</button>
+                <button class="sort-btn" data-sort="title">Job Title</button>
+                <button class="sort-btn" data-sort="skills">Skills Match</button>
+            </div>
+        </div>
+
+        <!-- Job Cards -->
+        <div class="jobs-grid">
+            {% for job in recommendations %}
+            <div class="job-card" 
+                 data-score="{{ job.match_score }}" 
+                 data-title="{{ job.job_title }}"
+                 data-matched-skills="{{ job.matched_count }}">
+                
+                <div class="job-card-main">
+                    <!-- Score Circle -->
+                    <div class="score-circle {% if job.match_score >= 50 %}high{% elif job.match_score >= 25 %}mid{% else %}low{% endif %}">
+                        <svg viewBox="0 0 72 72">
+                            <circle class="track" cx="36" cy="36" r="33" />
+                            <circle class="progress" cx="36" cy="36" r="33" />
+                        </svg>
+                        <div class="score-value">
+                            <span class="score-number" data-score="{{ job.match_score }}">0.0%</span>
+                            <span class="score-label">Match</span>
+                        </div>
+                    </div>
+
+                    <!-- Job Info -->
+                    <div class="job-info">
+                        <h2 class="job-title">{{ job.job_title }}</h2>
+                        <div class="job-meta">
+                            <span class="job-meta-item">
+                                <span class="job-meta-icon">🏢</span>
+                                {{ job.company }}
+                            </span>
+                            <span class="job-meta-item">
+                                <span class="job-meta-icon">📍</span>
+                                {{ job.location }}
+                            </span>
+                            <span class="job-meta-item">
+                                <span class="job-meta-icon">📈</span>
+                                {{ job.experience_level }}
+                            </span>
+                        </div>
+                        <span class="job-category-badge">{{ job.category }}</span>
+                    </div>
+
+                    <!-- Expand Button -->
+                    <button class="job-expand-btn" aria-label="Toggle details" title="View details">
+                        ▼
+                    </button>
+                </div>
+
+                <!-- Expandable Details -->
+                <div class="job-details">
+                    <div class="job-details-inner">
+                        
+                        <!-- Skills Analysis -->
+                        <div class="skills-analysis">
+                            <h4>📊 Skills Analysis</h4>
+                            
+                            <!-- Progress Bar -->
+                            <div class="skills-bar">
+                                <div class="skills-progress-bar">
+                                    <div class="skills-progress-fill" 
+                                         data-width="{% if job.total_skills > 0 %}{{ (job.matched_count / job.total_skills * 100) | round(0) }}{% else %}0{% endif %}"
+                                         style="width: 0%"></div>
+                                </div>
+                                <span class="skills-count">{{ job.matched_count }}/{{ job.total_skills }} skills</span>
+                            </div>
+
+                            <!-- Matched Skills -->
+                            {% if job.matched_skills %}
+                            <div class="skill-chips">
+                                {% for skill in job.matched_skills %}
+                                <span class="skill-chip matched">{{ skill }}</span>
+                                {% endfor %}
+                            </div>
+                            {% endif %}
+
+                            <!-- Missing Skills -->
+                            {% if job.missing_skills %}
+                            <div class="skill-chips">
+                                {% for skill in job.missing_skills %}
+                                <span class="skill-chip missing">{{ skill }}</span>
+                                {% endfor %}
+                            </div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Job Description -->
+                        <div class="job-description">
+                            <h4>📝 Job Description</h4>
+                            <p>{{ job.job_description }}</p>
+                        </div>
+
+                    </div>
+                </div>
+
+            </div>
+            {% endfor %}
+        </div>
+
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <p>🎯 Jobify AI — Powered by TF-IDF & Cosine Similarity | Built with Python, Flask & scikit-learn</p>
+    </footer>
+
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+</body>
+</html>

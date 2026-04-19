@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Jobify AI — Intelligent Job Recommendation System</title>
+    <meta name="description" content="Upload your resume or enter your skills to get AI-powered job recommendations with match scores. Find your perfect career match today.">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎯</text></svg>">
+</head>
+<body>
+
+    <!-- Background Decoration -->
+    <div class="bg-decoration">
+        <div class="bg-orb bg-orb-1"></div>
+        <div class="bg-orb bg-orb-2"></div>
+        <div class="bg-orb bg-orb-3"></div>
+    </div>
+    <div class="bg-grid"></div>
+
+    <!-- Navigation Bar -->
+    <nav class="nav-bar" id="navbar">
+        <div class="nav-content">
+            <a href="/" class="nav-logo">
+                <div class="nav-logo-icon">🎯</div>
+                <div class="nav-logo-text"><span>Jobify</span> AI</div>
+            </a>
+            <div class="nav-stats">
+                <div class="nav-stat">
+                    <span class="nav-stat-value">{{ stats.job_count }}</span>
+                    <span>Jobs</span>
+                </div>
+                <div class="nav-stat">
+                    <span class="nav-stat-value">{{ stats.categories | length }}</span>
+                    <span>Categories</span>
+                </div>
+                <div class="nav-stat">
+                    <span class="nav-stat-value">AI</span>
+                    <span>Powered</span>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Flash Messages -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+    <div class="flash-messages">
+        {% for category, message in messages %}
+        <div class="flash-msg {{ category }}">
+            {% if category == 'error' %}❌{% elif category == 'warning' %}⚠️{% else %}✅{% endif %}
+            {{ message }}
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+    {% endwith %}
+
+    <div class="main-container">
+
+        <!-- Hero Section -->
+        <section class="hero">
+            <div class="hero-badge">
+                <span class="pulse-dot"></span>
+                AI-Powered Job Matching Engine
+            </div>
+            <h1>
+                Find Your <span class="gradient-text">Perfect Job</span><br>
+                With AI Precision
+            </h1>
+            <p class="hero-subtitle">
+                Upload your resume or enter your skills — our intelligent matching engine 
+                analyzes your profile against {{ stats.job_count }}+ job listings to find 
+                your ideal career match with detailed skill gap analysis.
+            </p>
+        </section>
+
+        <!-- Feature Cards -->
+        <div class="features-row">
+            <div class="feature-card">
+                <span class="feature-icon">📄</span>
+                <h3>Resume Parsing</h3>
+                <p>Upload PDF and auto-extract your skills</p>
+            </div>
+            <div class="feature-card">
+                <span class="feature-icon">🧠</span>
+                <h3>TF-IDF Analysis</h3>
+                <p>Advanced text vectorization engine</p>
+            </div>
+            <div class="feature-card">
+                <span class="feature-icon">📊</span>
+                <h3>Match Scoring</h3>
+                <p>Cosine similarity based precision</p>
+            </div>
+            <div class="feature-card">
+                <span class="feature-icon">🔍</span>
+                <h3>Skill Gap</h3>
+                <p>See what skills you need to learn</p>
+            </div>
+        </div>
+
+        <!-- Input Section -->
+        <section class="input-section">
+            <div class="input-card">
+                <!-- Tab Navigation -->
+                <div class="tab-nav">
+                    <button class="tab-btn active" data-tab="tab-upload" id="tab-btn-upload">
+                        <span class="tab-btn-icon">📤</span>
+                        Upload Resume
+                    </button>
+                    <button class="tab-btn" data-tab="tab-manual" id="tab-btn-manual">
+                        <span class="tab-btn-icon">✍️</span>
+                        Manual Entry
+                    </button>
+                </div>
+
+                <!-- Tab Content -->
+                <div class="tab-content">
+                    <form id="recommend-form" action="/recommend" method="POST" enctype="multipart/form-data">
+                        <input type="hidden" name="input_mode" id="input-mode" value="upload">
+
+                        <!-- Upload Tab -->
+                        <div class="tab-pane active" id="tab-upload">
+                            <div class="form-group">
+                                <label class="form-label">
+                                    Upload Your Resume
+                                    <span class="form-label-hint">(PDF format, max 16MB)</span>
+                                </label>
+                                <div class="upload-zone" id="upload-zone">
+                                    <span class="upload-zone-icon">📁</span>
+                                    <h3>Drag & drop your PDF here</h3>
+                                    <p>or click to browse files</p>
+                                    <div class="file-name"></div>
+                                    <input type="file" name="resume" id="resume-file" accept=".pdf">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Manual Entry Tab -->
+                        <div class="tab-pane" id="tab-manual">
+                            <div class="form-group">
+                                <label class="form-label" for="skills-input">
+                                    Skills
+                                    <span class="form-label-hint">(comma separated)</span>
+                                </label>
+                                <textarea class="form-textarea" id="skills-input" name="skills"
+                                    placeholder="e.g. Python, JavaScript, React, Machine Learning, SQL, Docker, AWS, Git..."></textarea>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="form-label" for="experience-input">
+                                    Experience
+                                    <span class="form-label-hint">(roles, projects, years)</span>
+                                </label>
+                                <textarea class="form-textarea" id="experience-input" name="experience"
+                                    placeholder="e.g. 2 years as Full Stack Developer at TechCorp. Built REST APIs with Node.js, developed React dashboards, managed PostgreSQL databases..."></textarea>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="form-label" for="qualifications-input">
+                                    Qualifications
+                                    <span class="form-label-hint">(education, certifications)</span>
+                                </label>
+                                <textarea class="form-textarea" id="qualifications-input" name="qualifications"
+                                    placeholder="e.g. B.Tech in Computer Science, AWS Certified Developer, Google Data Analytics Certificate..."></textarea>
+                            </div>
+                        </div>
+
+                        <!-- Submit Button -->
+                        <button type="submit" class="btn-submit" id="submit-btn">
+                            <span>
+                                <span class="btn-text">Find Matching Jobs</span>
+                                <span class="btn-icon">→</span>
+                            </span>
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </section>
+
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <p>🎯 Jobify AI — Powered by TF-IDF & Cosine Similarity | Built with Python, Flask & scikit-learn</p>
+    </footer>
+
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+</body>
+</html>
